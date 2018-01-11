@@ -1,0 +1,1 @@
+include ':app', ':seekbar2', ':mylibrary'
