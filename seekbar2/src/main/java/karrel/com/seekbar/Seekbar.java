@@ -127,16 +127,23 @@ public class Seekbar extends FrameLayout implements GestureDetector.OnGestureLis
 
         // up 이벤트 발생시 thumb 를 맞는 위치로 옮겨야함.
         if (event.getAction() == MotionEvent.ACTION_UP) {
-//            RLog.d("up!!");
+            RLog.e("up!!");
             // 적당한 위치로 thumb를 이동
             // 5구간이라는 가정
 
             // 현재 thumb의 위치가 어느 구간이랑 가까운가? 계산
             Pair<Integer, Integer> pair = calPosition((int) event.getRawX());
             int position = pair.second;
-            if (position == 0) position += mTickGap;
-            if (position == getWidth()) position -= mTickGap;
-            mThumbLeft = position - (mBinding.thumb.getWidth() / 2);
+            RLog.d("position : " + position);
+            if (position == 0) {
+                mThumbLeft = 0;
+            } else if (position == getWidth()) {
+                mThumbLeft = getWidth() - mBinding.thumb.getWidth();
+            } else {
+                mThumbLeft = position - (mBinding.thumb.getWidth() / 2);
+            }
+
+            RLog.d("position : " + position);
             setThumbX(mIsAnim);
 
             // tick 계산
@@ -195,6 +202,7 @@ public class Seekbar extends FrameLayout implements GestureDetector.OnGestureLis
     }
 
     private void setThumbX(boolean isAnim) {
+        RLog.d("mThumbLeft : " + mThumbLeft);
         if (isAnim) {
             mBinding.thumb.animate()
                     .translationX(mThumbLeft)
@@ -209,11 +217,11 @@ public class Seekbar extends FrameLayout implements GestureDetector.OnGestureLis
     // 현재 thumb의 위치가 어느 구간이랑 가까운가 계산
     private Pair<Integer, Integer> calPosition(int point) {
         int tick;
-//        RLog.d("point : " + point);
+        RLog.d("point : " + point);
 
         for (int i = mTickLoc.length - 1; i >= 0; i--) {
             tick = i;
-//            RLog.d("mTickLoc[i] : " + mTickLoc[i]);
+            RLog.d("mTickLoc[i] : " + mTickLoc[i]);
 
             if (mTickLoc[i] < point) {
                 int value;
@@ -227,7 +235,7 @@ public class Seekbar extends FrameLayout implements GestureDetector.OnGestureLis
                 if (tick <= 0) tick = 0;
                 if (mTick <= tick) tick = mTick - 1;
 
-//                RLog.d("value : " + value);
+                RLog.d("value : " + value);
                 return Pair.create(tick, value);
             }
 
@@ -237,6 +245,13 @@ public class Seekbar extends FrameLayout implements GestureDetector.OnGestureLis
 
     @Override
     public boolean onDown(MotionEvent e) {
+        // thumb 의 위치를 이동시켜준다.
+        mThumbLeft = moveThumb(e);
+        setThumbX(false);
+        // tick 계산
+        calTick(e);
+//        RLog.d();
+        onChangeStatus(ThumbStatus.press);
 //        RLog.d();
         return true;
     }
